@@ -1,0 +1,643 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+
+
+
+<head>
+	<!--CSS-->
+	<link rel="stylesheet" type="text/css" media="screen" href="./cmn/css/common-min.css" />
+	<!--[if IE 6]>
+	<link rel="stylesheet" type="text/css" href="./cmn/css/ie6-min.css" />
+	<![endif]-->
+	<!--[if IE 7]>
+	<link rel="stylesheet" type="text/css" href="./cmn/css/ie7-min.css" />
+	<![endif]-->
+	<link rel="stylesheet" type="text/css" media="print" href="./cmn/css/print.css" />
+	<link rel="stylesheet" type="text/css" media="screen" href="./cmn/css/lib/jquery.radioswitch.css" />
+	<link rel="stylesheet" type="text/css" media="screen" href="./cmn/css/lib/progressBar.css" />
+	<!--Character Encoding-->
+	<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+	<meta name="robots" content="noindex,nofollow">
+    <script type="text/javascript" src="./cmn/js/lib/jquery-3.4.1.js"></script>
+    <script type="text/javascript" src="./cmn/js/lib/jquery-migrate-1.2.1.js"></script>
+    <script type="text/javascript" src="./cmn/js/lib/jquery.validate.js"></script>
+    <script type="text/javascript" src="./cmn/js/lib/jquery.alerts.js"></script>
+	<script type="text/javascript" src="./cmn/js/lib/jquery.ciscoExt.js"></script>
+	<script type="text/javascript" src="./cmn/js/lib/jquery.highContrastDetect.js"></script>
+	<script type="text/javascript" src="./cmn/js/lib/jquery.radioswitch.js"></script>
+	<script type="text/javascript" src="./cmn/js/lib/jquery.virtualDialog.js"></script>
+	<script type="text/javascript" src="./cmn/js/lib/bootstrap.min.js"></script>
+    <script type="text/javascript" src="./cmn/js/lib/bootstrap-waitingfor.js"></script>
+    <!-- update the version of utilityFunctions.js if any changes is made to this js file otherwise browser will take the old js file from the cache memory -->
+	<script type="text/javascript" src="./cmn/js/utilityFunctions.js?v=1"></script>
+    <script type="text/javascript" src="./cmn/js/comcast.js"></script>
+    
+</head>
+<script type="text/javascript">
+	$(document).ready(function() {
+		$("table.data td").each(function() {
+			if($(this).text().split("\n")[0].length > 25)
+			{
+				$(this).closest('table').css("table-layout", "fixed");
+				$(this).css("word-wrap", "break-word");
+			}
+		});
+	});
+</script>
+
+<body>
+    <!--Main Container - Centers Everything-->
+	<div id="container">
+
+		<!--Header-->
+		<div id="header">
+			<h2 id="logo" class="logo_title"><img src="./cmn/img/logo_xfinity.png" alt="Company logo" title="Company logo" /></h2>
+			<p class="bridmar">
+				<strong>
+				
+				</strong>
+			</p>
+		</div> <!-- end #header -->
+
+		<div id='div-skip-to' class="acs-hide">
+			<a id="skip-link" name="skip-link" href="#content">Skip to content</a>
+		</div>
+		
+		<!--Main Content-->
+		<div id="main-content">
+
+
+<div  id="sub-header">
+	
+<!--dynamic generate user bar icon and tips-->
+
+
+
+<script type="text/javascript">
+setTimeout(function() {
+	/*
+	* get status when hover or tab focused one by one
+	* but for screen reader we have to load all status once
+	* below code can easily rollback
+	*/
+	//update user bar
+	//var sessionCsrf= "dauz8cauea";
+	//if(document.cookie==""){
+	//	sessionStorage.setItem("Csrfp_token",sessionCsrf);
+	//}
+	$.ajax({
+		type: "GET",
+		url: "actionHandler/ajaxSet_userbar.jst",
+		data: { configInfo: "noData" },
+		dataType: "json",
+		success: function(msg) {
+			// theObj.find(".tooltip").html(msg.tips);
+			for (var i=0; i<msg.tags.length; i++){
+				$("#"+msg.tags[i]).find(".tooltip").html(msg.tips[i].replace(/-/g, "<br/>"));
+				$("#"+msg.tags[i]).removeClass("off");
+				if(msg.mainStatus[i]=="false")$("#"+msg.tags[i]).addClass("off");
+				if(msg.tags[i] === "sta_fire")
+				{
+					if (!(("High"== msg.mainStatus[i]) || ("Medium"==msg.mainStatus[i]))) 
+					{
+						$("#"+msg.tags[i]).addClass("off");
+					}
+					$("#sta_fire a>span").text(msg.mainStatus[i] + " Security")
+				}
+			}
+			//$sta_batt,$battery_class
+			$("#sta_batt a").text(msg.mainStatus[4]+"%");
+			$("#sta_batt > div > span").removeClass().addClass(msg.mainStatus[5]);
+		},
+		error: function(){
+			// does something
+		}
+	});
+
+	//when clicked on this page, restart timer
+	var jsInactTimeout = parseInt("840") * 1000;
+	// if ("") jsInactTimeout = 5000;	// 5 seconds debug
+	
+	// var h_timer = setTimeout('alert("You are being logged out due to inactivity."); location.href="home_loggedout.jst";', jsInactTimeout);
+	var h_timer = null;
+	$(document).click(function() {
+		// do not handle click if no-login for GA
+		// if ("" == "") {
+			// return;
+		// }			
+	
+		// do not handle click event when count-down show up
+		if ($("#count_down").length > 0) {
+			return;
+		}
+		// console.log(h_timer);
+		
+		clearTimeout(h_timer);
+		h_timer = setTimeout(function(){
+			var cnt		= 60;
+			var h_cntd  = setInterval(function(){
+				$("#count_down").text(--cnt);
+				// (1)stop counter when less than 0, (2)hide warning when achieved 0, (3)add another alert to block user action if network unreachable
+				if (cnt<=0) {
+					clearInterval(h_cntd);	
+					jAlert("You have been logged out due to inactivity!");
+					location.href="home_loggedout.jst";
+				}
+			}, 1000);
+			// use jAlert instead of alert, or it will not auto log out untill OK pressed!
+			jAlert('Press <b>OK</b> to continue session. Otherwise you will be logged out in <span id="count_down" class="count_down_style" color: red;">'+cnt+'</span> seconds!'
+			, 'You are being logged out due to inactivity!'
+			, function(){
+				clearInterval(h_cntd);
+			});
+		}
+		, jsInactTimeout);
+	}).trigger("click");
+	
+	// show pop-up info when focus
+	$("#status a").focus(function() {
+		$(this).mouseenter();
+	});
+	
+	// disappear previous pop-up
+	$("#status a").blur(function() {
+		$(".tooltip").hide();
+	});
+
+}, 100);
+
+</script>
+
+
+<ul id="userToolbar" class="on">
+	<li class="first-child"> Hi cusadmin</li>
+	<li class="toolbar_style">&nbsp;&nbsp;&#8226;&nbsp;&nbsp;<a href="home_loggedout.jst" tabindex="0">Logout</a></li>
+	<li class="toolbar_style">&nbsp;&nbsp;&#8226;&nbsp;&nbsp;<a href="password_change.jst" tabindex="0">Change Password</a></li>
+</ul>
+
+<ul id="status">
+	<li id="sta_batt" class="battery first-child"><div class="sprite_cont"><span class="bat-0" ><img src="./cmn/img/icn_battery.png"  alt="Battery icon" title="Battery icon" /></span></div><a role="toolbar" href="javascript: void(0);" tabindex="0">0%</a>	 <!-- NOTE: When this value changes JS will set the battery icon -->	</li><li id="sta_inet" class="internet"><span class="value on-off sprite_cont"><img src="./cmn/img/icn_on_off.png" alt="Internet Online" /></span><a href="javascript: void(0);" tabindex="0">Internet<div class="tooltip">Loading...</div></a></li><li id="sta_wifi" class="wifi"><span class="value on-off sprite_cont"><img src="./cmn/img/icn_on_off.png" alt="WiFi Online" /></span><a href="javascript: void(0);" tabindex="0">Wi-Fi<div class="tooltip">Loading...</div></a></li><li id="sta_fire" class="security last off"><span class="value on-off sprite_cont"><img src="./cmn/img/icn_on_off.png" alt="Security Off" /></span><a href="javascript: void(0);" tabindex="0"><span>Low Security</span><div class="tooltip">Loading...</div></a></li>
+</ul>
+
+
+</div><!-- end #sub-header -->
+
+
+<!-- $Id: nav.dory.jst 3155 2010-01-06 19:36:01Z slemoine $ -->
+
+<!--Nav-->
+<div id="nav"><ul><li class="nav-gateway"><a role="menuitem"  title="click to toggle sub menu" class="top-level" href="at_a_glance.jst">Gateway</a><ul><li class="nav-at-a-glance"><a role="menuitem"  href="at_a_glance.jst">At a Glance</a></li><li class="nav-initial-setup"><a role="menuitem"  href="initial_setup.jst">Initial Setup</a></li><li class="nav-connection"><a role="menuitem"  title="click to toggle sub menu"  href="javascript:;">Connection</a><ul><li class="nav-connection-status"><a role="menuitem"  href="connection_status.jst">Status</a></li><li class="nav-comcast-network"><a role="menuitem"  href="comcast_network.jst">Comcast Network</a></li><li class="nav-local-ip-network"><a role="menuitem"  href="local_ip_configuration.jst">Local IP Network</a></li><li class="nav-wifi-config"><a role="menuitem"  href="wireless_network_configuration.jst">Wi-Fi</a></li><li class="nav-mta"><a role="menuitem"  title="click to toggle sub menu"  href="javascript:;">MTA</a><ul class="nav_style"><li class="nav-line-status"><a role="menuitem"  href="mta_Line_Status.jst">Status</a></li></ul></li></ul></li><li class="nav-firewall"><a role="menuitem"  title="click to toggle sub menu"  href="javascript:;">Firewall</a>			<ul>				<li class="nav-firewall-ipv4"><a role="menuitem"  href="firewall_settings_ipv4.jst">IPv4</a></li>				<li class="nav-firewall-ipv6"><a role="menuitem"  href="firewall_settings_ipv6.jst">IPv6</a></li>			</ul>			</li><li class="nav-software"><a role="menuitem"  href="software.jst">Software</a></li><li class="nav-hardware"><a role="menuitem"  title="click to toggle sub menu"  href="javascript:;">Hardware</a><ul><li class="nav-system-hardware"><a role="menuitem"  href="hardware.jst">System Hardware</a></li><li class="nav-battery"><a role="menuitem"  href="battery.jst">Battery</a></li><li class="nav-lan"><a role="menuitem"  href="lan.jst">LAN</a></li><li class="nav-wifi"><a role="menuitem"  href="wifi.jst">Wireless</a></li></ul></li></ul></li><li class="nav-connected-devices"><a role="menuitem"  title="click to toggle sub menu"  class="top-level" href="connected_devices_computers.jst">Connected Devices</a><ul><li class="nav-cdevices"><a role="menuitem"  href="connected_devices_computers.jst">Devices</a></li></ul></li><li class="nav-content-control"><a role="menuitem"  title="click to toggle sub menu"  class="top-level" href="managed_sites.jst">Content Filtering</a><ul><li class="nav-sites"><a role="menuitem"  href="managed_sites.jst">Managed Sites</a></li><li class="nav-services"><a role="menuitem"  href="managed_services.jst">Managed Services</a></li><li class="nav-devices"><a role="menuitem"  href="managed_devices.jst">Managed Devices</a></li><li class="nav-parental-reports"><a role="menuitem"  href="parental_reports.jst">Reports</a></li></ul></li><li class="nav-advanced"><a role="menuitem"  title="click to toggle sub menu"  class="top-level" href="port_forwarding.jst">Advanced</a><ul><li class="nav-port-forwarding"><a role="menuitem"  href="port_forwarding.jst">Port Forwarding</a></li><li class="nav-port-triggering"><a role="menuitem"  href="port_triggering.jst">Port Triggering</a></li><li class="nav-port-management"><a role="menuitem"  href="port_management.jst">Port Management</a></li><li class="nav-remote-management"><a role="menuitem"  href="remote_management.jst">Remote Management</a></li><!--li class="nav-qos1"><a role="menuitem"  href="qos1.jst">QoS</a></li--><li class="nav-dmz"><a role="menuitem"  href="dmz.jst">DMZ</a></li><li class="nav-nat"><a role="menuitem"  href="nat.jst">NAT</a></li><li class="nav-staticrouting"><a role="menuitem"  href="staticrouting.jst">Static Routing</a></li><li class="nav-device-discovery"><a role="menuitem"  href="device_discovery.jst">Device Discovery</a></li></ul></li><li class="nav-troubleshooting"><a role="menuitem"  title="click to toggle sub menu"  class="top-level" href="troubleshooting_logs.jst">Troubleshooting</a><ul><li class="nav-logs"><a role="menuitem"  href="troubleshooting_logs.jst">Logs</a></li><li class="nav-diagnostic-tools"><a role="menuitem"  href="network_diagnostic_tools.jst">Diagnostic Tools</a></li><li class="nav-restore-reboot"><a role="menuitem"  href="restore_reboot.jst">Reset/Restore Gateway</a></li><li class="nav-password"><a role="menuitem"  href="password_change.jst">Change Password</a></li></ul></li></ul></div>
+<script type="text/javascript">
+var o_pmEnabled = false;
+var o_ruleType = "White";
+var o_ruleArray = [];
+var token = "dauz8cauea";
+
+function ondelete() {
+	var $this = $(this);
+	var id = $this.closest('tr').attr('eid');
+	var postData = {};
+
+	postData.op = 'del';
+	postData.id = id;
+
+        postData.csrfp_token =token;
+
+	jProgress('This may take several seconds', 60);
+	$.ajax({
+		type: 'POST',
+		url: 'actionHandler/ajax_port_management.jst',
+		dataType: 'json',
+		data: postData,
+		success: function(data) {
+			jHide();
+			if (data.status != 'success') {
+				var str = "Failed, please try again later.";
+				if (data.msg) {
+					str += '\nMessage: ' + data.msg;
+				}
+				jAlert(str);
+				return;
+			}
+			else {
+				window.location.reload(true);
+			}
+		},
+		error: function() {
+			jHide();
+			jAlert("Failure, please try again.");
+		}
+	});
+}
+
+function onenable(isEnabling) {
+	var $this = $(this);
+	var id = $this.closest('tr').attr('eid');
+	var postData = {};
+
+	postData.op = isEnabling ? 'enable' : 'disable';
+	postData.id = id;
+
+        postData.csrfp_token =token;
+
+	jProgress('This may take several seconds', 60);
+	$.ajax({
+		type: 'POST',
+		url: 'actionHandler/ajax_port_management.jst',
+		dataType: 'json',
+		data: postData,
+		success: function(data) {
+			jHide();
+			if (data.status != 'success') {
+				var str = "Failed, please try again later.";
+				if (data.msg) {
+					str += '\nMessage: ' + data.msg;
+				}
+				/* restore the previous state */
+				$this.prop("checked", !isEnabling);
+
+				jAlert(str);
+				return;
+			}
+			else {
+				window.location.reload(true);
+			}
+		},
+		error: function() {
+			/* restore the previous state */
+			jHide();
+			$this.prop("checked", !isEnabling);
+			jAlert("Failure, please try again.");
+		}
+	});
+}
+
+function ondisableAll(isDisabling) {
+	var $this = $(this);
+	var postData = {};
+
+	postData.op = 'disableAllPm';
+	postData.isDisabling = isDisabling;
+
+        postData.csrfp_token =token;
+
+	jProgress('This may take several seconds', 60);
+	$.ajax({
+		type: 'POST',
+		url: 'actionHandler/ajax_port_management.jst',
+		dataType: 'json',
+		data: postData,
+		success: function(data) {
+			jHide();
+			if (data.status != 'success') {
+				var str = "Failed, please try again later.";
+				if (data.msg) {
+					str += '\nMessage: ' + data.msg;
+				}
+				/* restore the previous state */
+				$this.prop("checked", !isDisabling);
+
+				jAlert(str);
+				return;
+			}
+			else {
+				window.location.reload(true);
+			}
+		},
+		error: function() {
+			jHide();
+			/* restore the previous state */
+			$this.prop("checked", !isDisabling);
+			jAlert("Failure, please try again.");
+		}
+	});
+}
+
+function onchangeRuleType(ruleType) {
+	var $this = $(this);
+	var postData = {};
+
+	postData.op = 'changeType';
+	postData.type = ruleType;
+
+        postData.csrfp_token =token;
+
+	jProgress('This may take several seconds', 60);
+	$.ajax({
+		type: 'POST',
+		url: 'actionHandler/ajax_port_management.jst',
+		dataType: 'json',
+		data: postData,
+		success: function(data) {
+			jHide();
+			if (data.status != 'success') {
+				var str = "Failed, please try again later.";
+				if (data.msg) {
+					str += '\nMessage: ' + data.msg;
+				}
+				/* restore the previous state */
+				$this.val(o_ruleType);
+
+				jAlert(str);
+				return;
+			}
+			else {
+				window.location.reload(true);
+			}
+		},
+		error: function() {
+			jHide();
+			/* restore the previous state */
+			$this.val(o_ruleType);
+			jAlert("Failure, please try again.");
+		}
+	});
+}
+
+function initEvents() {
+	/* enable checkbox */
+	$('input[name=EnableRule]').off('click').click(function(){
+		var that = this;
+		var isEnabling = $(this).prop("checked");
+		jConfirm('Are you sure you want to '+(isEnabling ? 'enable' : 'disable')+' this Port Management rule?',
+			"Are You Sure?", function(ret) {
+			if(ret) {
+				onenable.call(that, isEnabling);
+			}
+			else {
+				$(that).prop("checked", !isEnabling);
+			}
+		});
+	});
+
+	/* delete button */
+	$('td.delete > a.btn').off('click').click(function(e){
+		e.stopPropagation();
+		e.preventDefault();
+		if (!o_pmEnabled) {
+			/* prevent this action */
+			return;
+		}
+		var message = ($(this).attr("title").length > 0) ?
+			"Are you sure you want to " + $(this).attr("title") + "?" : "Are you sure?";
+		var that = this;
+		jConfirm(message, "Are You Sure?", function(ret) {
+			if(ret) {
+				ondelete.call(that);
+			}    
+		});
+	});
+
+	/* add and edit button */
+	if (!o_pmEnabled) {
+		$('#add-service').off('click').click(function(e){
+			e.preventDefault();
+			e.stopPropagation();
+		});
+		$('td.edit > a.btn').off('click').click(function(e){
+			e.preventDefault();
+			e.stopPropagation();
+		});
+	}
+	else if (o_ruleArray.length >= 64) {
+		$('#add-service').off('click').click(function(e){
+			e.preventDefault();
+			e.stopPropagation();
+			jAlert("There are already 64 rules, cannot add more!");
+		});
+	}
+
+	/* disable all */
+	$('#disableAll').off('click').click(function(){
+		var that = this;
+		var isDisabling = $(this).prop("checked");
+		jConfirm('Are you sure you want to '+(isDisabling ? 'disable <b>ALL</b>' : 'enable')+' Port Management rule?',
+			"Are You Sure?", function(ret) {
+			if(ret) {
+				ondisableAll.call(that, isDisabling);
+			}
+			else {
+				$(that).prop("checked", !isDisabling);
+			}
+		});
+	});
+
+	/* rule type */
+	$('#ruleType').off('change').change(function(){
+		var that = this;
+		var ruleType = $(this).val();
+		jConfirm('Are you sure you want to change Port Management to "'+$(this).children(':selected').text()+'"?',
+			"Are You Sure?", function(ret) {
+			if(ret) {
+				onchangeRuleType.call(that, ruleType);
+			}
+			else {
+				$(that).val(o_ruleType);
+			}
+		});
+	});
+}
+
+function onchangePmDisable(disabled, preFill) {
+	if (disabled === undefined) {
+		disabled = $('#disableAll').prop("checked");
+	}
+	else {
+		$('#disableAll').prop("checked", disabled);
+	}
+	if (disabled) {
+		$('#forwarding-items').addClass('disabled');
+		$('.module.data *').addClass('disabled');
+		$('.module.data input:checkbox').prop("disabled", true);
+	}
+	else {
+		$('#forwarding-items').removeClass('disabled');
+		$('.module.data *').removeClass('disabled');
+		$('.module.data :checkbox').prop("disabled", false);
+	}
+}
+
+function initPmFields() {
+	/* at first to populate the table data */
+	var htmlStr = '';
+	for (var i=0; i<o_ruleArray.length; ++i) {
+		var entry = o_ruleArray[i];
+
+		htmlStr += '<tr eid="'+entry['__id']+'" '+((i%2 != 0) ? 'class="odd"' : "")+'>';
+		htmlStr += '<td headers="hdr_number">'+(i+1)+'</td>';
+		htmlStr += '<td headers="hdr_appname">'+htmlspecialchars_js(entry['Name'])+'</td>';
+		htmlStr += '<td headers="hdr_portrange">'+entry['PortRangeMin']+' ~ '+entry['PortRangeMax']+'</td>';
+		htmlStr += '<td headers="hdr_proto">'+entry['Protocol']+'</td>';
+		htmlStr += '<td headers="hdr_iprange">'+entry['IPRangeMin']+' ~ '+entry['IPRangeMax']+'</td>';
+		htmlStr += '<td headers="hdr_enable"><label for="EnableRule'+i+'" class="acs-hide"></label>'+
+			'<input type="checkbox" id="EnableRule'+i+'" name="EnableRule" '+(entry['Enable'] === 'true' ? 'checked' : '')+' /></td>';
+		htmlStr += '<td headers="hdr_controls" class="edit"><a href="port_management_edit.jst?id='+entry['__id']+'" class="btn" >Edit</a></td>';
+		htmlStr += '<td headers="hdr_controls" class="delete"><a href="javascript:void(0)" class="btn" title="delete Port Management Rule for '+htmlspecialchars_js(entry['Name'])+'?">x</a></td>';
+		htmlStr += '</tr>';
+	}
+	$('#ruleTable tr:first').after(htmlStr);
+
+	onchangePmDisable(!o_pmEnabled, true);
+	$('#ruleType').val(o_ruleType);
+}
+
+$(document).ready(function() {
+    comcast.page.init("Advanced > True Static IP Port Management", "nav-port-management");
+	$("table.data").find("td").addClass("port_managetable");
+	initPmFields();
+	initEvents();
+});
+
+</script>
+
+<div id="content">
+	<h1>Advanced > True Static IP Port Management</h1>
+
+	<div id="educational-tip">
+		<p class="tip">Manage rules that restrict certain inbound traffic to specific computers on the True Static IP network.</p>
+		<p class="hidden">True Static IP Port Management allows you to restrict inbound traffic to computers within your local Static IP network by IP address and by Logical Port. Logical Ports are assigned numbers to identify Internet traffic that is generated by a software application. The assignable logical port range is between 1 and 65535. Your gateway supports up to 100 True Static IP Port Management rules.  To add a new static IP port management rule, click the add new button.  To edit an existing rule, select the rule from the port blocking rule table, and click edit.  Make sure the Enable box is checked when you wish to enforce a specific static IP port management rule.  Also note the dropdown menu that will allow you to define how the rules function.  You can make your rules work to only allow specific ports to be open, or a list of specific ports to block.</p>
+	</div>
+
+	<form action="" method="post">
+	<div class="module">
+
+	<div class="form-row ">
+		<input type="checkbox" name="disableAll" value="disable" id="disableAll" /><b><label for="disableAll">Disable all rules and allow all inbound traffic through</label></b>
+	</div>
+	<div class="form-row">
+		<label for="ruleType" class="acs-hide">Select rule type</label>
+		<select name="ruleType" id="ruleType">
+			<option value="White">Block all ports but allow exceptions below</option>
+			<option value="Black">Open all ports but block exceptions below</option>
+		</select>
+	</div>
+
+	</div>
+	</form>
+	<div id=forwarding-items>
+	<div class="module data">
+	<h2>Port Management</h2>
+			<p class="button"><a href="port_management_edit.jst?t=add" class="btn" id="add-service">+ ADD New</a></p>
+
+		<table id="ruleTable" class="data" summary="This table lists all port management rules">
+		    <tr>
+		        <th id="hdr_number">#</th>
+		        <th id="hdr_appname">Application Name</th>
+				<th id="hdr_portrange">Port Range</th>
+				<th id="hdr_proto">Protocol</th>
+				<th id="hdr_iprange">True Static IP Range</th>
+				<th id="hdr_enable">Enable</th>
+				<th id="hdr_controls" colspan="2">&nbsp;</th>
+		    </tr>
+		<tfoot>
+			<tr class="acs-hide">
+				<td headers="hdr_number">null</td>
+				<td headers="hdr_appname">null</td>
+				<td headers="hdr_portrange">null</td>
+				<td headers="hdr_proto">null</td>
+				<td headers="hdr_iprange">null</td>
+				<td headers="hdr_enable">null</td>
+				<td headers="hdr_controls">null</td>
+				<td headers="hdr_controls">null</td>
+			</tr>
+		</tfoot>
+		</table>
+
+	</div> <!-- end .module -->
+	</div>
+</div><!-- end #content -->
+
+<!-- $Id: footer.jst 2976 2009-09-02 21:42:51Z cporto $ -->
+		</div> <!-- end #main-content-->
+		
+		<!--Footer-->
+		<div id="footer">
+			<ul id="footer-links" class="hidden">
+				<li class="first-child"><a href="http://www.xfinity.com" target="_blank">Xfinity.com</a></li>
+				<li class="footer_style">&#8226;&nbsp;&nbsp;<a href="https://customer.comcast.com/" target="_blank">customerCentral</a></li>
+				<li class="footer_style">&#8226;&nbsp;&nbsp;<a href="http://customer.comcast.com/userguides" target="_blank">User Guide</a></li>
+			</ul>
+		</div> <!-- end #footer -->
+	</div> <!-- end #container -->
+<script type="text/javascript">
+$(document).ready(function() {
+	// focus current page link, must after page.init()
+	//$('#nav [href="'+location.href.replace(/^.*\//g, '')+'"]').focus();		// need a "skip nav" function
+	$("#skip-link").click(function () {
+        $('#content').attr('tabIndex', -1).focus();  //this is to fix skip-link doesn't work on webkit-based Chrome
+    });
+
+	// change radio-btn status and do ajax when press "enter"
+	//$(".radio-btns a").keydown(function(event){
+	$(".radio-btns a").keypress(function(event){
+		var keycode = (event.keyCode ? event.keyCode : event.which);
+		if(13 == keycode){
+			if (!$(this).parent(".radio-btns").find("li").hasClass("selected")){
+				return;		// do nothing if has disabled class, don't detect disabled attr for radio-btn
+			}
+			// console.log($(this).find(":radio").hasClass("disabled"));
+			$(this).find(":radio").trigger('click');
+			$(this).find(":radio").trigger('change');
+			$(this).parent(".radio-btns").radioToButton();
+		}
+	});
+	
+	// press Esc to skip menu and goto first control of content
+	// Esc:keypress:which is zero in FF, Esc:keypress is not work in Chrome
+	$("#nav").keydown(function(event){
+		var keycode = (event.keyCode ? event.keyCode : event.which);
+		if(27 == keycode){
+			$("#content textarea:eq(0)").focus();
+			$("#content input:eq(0)").focus();
+			$("#content a:eq(0)").focus();			// high priority element to focus			
+		}
+		// alert(event.keyCode+"---"+event.which+"---"+event.charCode);		
+	});
+	
+	/* changes for high contrast mode */
+	$.highContrastDetect({useExtraCss: true, debugInNormalMode: false});
+	if ($.__isHighContrast) {
+		/* change plus/minus tree indicator of nav menu */
+		$("#nav a.top-level").prepend('<span class="hi_nav_top_indi">[+]</span>');
+		$("#nav a.folder").prepend('<span class="hi_nav_folder_indi">[+]</span>');
+		$("#nav a.top-level-active span.hi_nav_top_indi").text("[-]");
+		$("#nav a.folder").click(function() {
+			/* this should be called after nav state changed */
+			var $link = $(this);
+			if ($link.hasClass("folder-open")) {
+				$link.children("span.hi_nav_folder_indi").text("[-]");
+			}
+			else {
+				$link.children("span.hi_nav_folder_indi").text("[+]");
+			}
+		});
+	}
+
+	/*
+	*	these 3 sections for radio-btn accessibility, as a workaround, maybe should put at the front of .ready().
+	*/
+	// add "role" and "title" for ARIA, attr may need to be embedded into html
+	$(".radio-btns a").each(function(){
+		$(this).attr("role", "radio").attr("title", $(this).closest("ul").prev().text() + $(this).find("label").text());
+	});
+	
+	// monitor "aria-checked" status for JAWS, NOTE: better depends on input element
+	$(".radio-btns").change(function(){
+		$(this).find("a").each(function(){
+			$(this).attr("aria-checked", $(this).find("input").attr("checked") ? "true" : "false");
+		});
+	});
+	
+	//give the initial status, do not trigger change above
+	$(".radio-btns").find("a").each(function(){
+		$(this).attr("aria-checked", $(this).find("input").attr("checked") ? "true" : "false");
+	});
+
+});
+</script>	
+</body>
+</html>
+
+
