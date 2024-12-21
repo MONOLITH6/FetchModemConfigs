@@ -1,1 +1,18 @@
-This is a test file
+Draft: Primary Functionality
+Speedtest
+Modems Conifgs
+- Firewall Settings
+- Wireless Settings Info
+- DHCP is on?
+- Public/Private IP
+- Ports in use with nmap:
+    - Port Forwarding
+    - Port Triggering
+    - DMZ
+    - NAT
+- Check if the Admin Tool has default credentials (Project 2: Bypass Authentication)
+- Connected Devices: Reserved IP's, amount of devices on WLAN, total amount of devices connected
+
+
+
+Steps:
