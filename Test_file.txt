@@ -16,3 +16,69 @@ Modems Conifgs
 
 
 Steps:
+Gateway http://10.1.10.1/at_a_glance.jst
++ At a Glance http://10.1.10.1/at_a_glance.jst 
+- Bridge Mode: Enable/Disable? 
++ Initial Setup: http://10.1.10.1/initial_setup.jst
+- Enable LAN DHCP: Check/Uncheck
+- LAN IP Adress
+- Lan Subnet Mask
+- DHCP Start IP
+- DHCP End IP
+- Enable DMZ HOST: Check/Uncheck
+- Router Name:
++ Connection
+++ Local IP Network: http://10.1.10.1/local_ip_configuration.jst
+- Enable LAN DHCP: Check/Uncheck
+- Gateway Address: value
+- Subnet Mask: value
+- DHCP Beginning Address: value
+- DHCP Ending Address: value
+- Assign DNS Manually: Check/Uncheck
+- Primary DNS: value
+- Secondary DNS: value
+++ Wi-Fi: http://10.1.10.1/wireless_network_configuration.jst
+- 2G WIFI http://10.1.10.1/wireless_network_configuration.jst?id=1
+- 5G WIFI http://10.1.10.1/wireless_network_configuration.jst?id=2
++ Firewall IPv4: http://10.1.10.1/firewall_settings_ipv4.jst
+- FireWall Options Disable Firewall for True Static IP Subnet Only
+- Disable Ping on WAN Interface
+- Firewall Security Level
+    - Max
+    - Typical
+    - Min
+    - Custom check/uncheck
+        Block http (TCP port 80, 443)
+        Block ICMP
+        Block Multicast
+        Block Peer-to-peer applications
+        Block IDENT (port 113)
+        Disable entire firewall
++ Hardware/Wireless: http://10.1.10.1/wifi.jst
+- System Uptime
++ Connected Devices: http://10.1.10.1/connected_devices_computers.jst
++ Content Filtering
++ Advanced
+++ Port Forwarding: http://10.1.10.1/port_forwarding.jst
+- Port Forwaring Enable/Disable
+- Port Forwarding Ports
+++ Port Triggering: http://10.1.10.1/port_forwarding.jst
+- Enable/Disable
+- Ports
+++ Port Management: http://10.1.10.1/port_forwarding.jst
+- Enable/Disable
+- Ports
+++ Remote Management: http://10.1.10.1/remote_management.jst
+- Enable/Disable
+- Ports
+++ DMZ: http://10.1.10.1/dmz.jst
+- v4 HOST: value
+- v6 HOST: value
+++ NAT: http://10.1.10.1/dmz.jst
+- Disable
+- Rules
+++ Static Routing: http://10.1.10.1/staticrouting.jst
+    Name 	
+    Destination Subnet 	
+    Subnet Mask 	
+    Gateway IP
