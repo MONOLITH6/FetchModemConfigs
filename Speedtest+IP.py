@@ -1,0 +1,144 @@
+import requests
+from bs4 import BeautifulSoup
+import subprocess
+
+# Modem IP and credentials
+modem_ip = "10.1.10.1"
+username = "cusadmin"
+password = "highspeed"
+
+# Cookie file path
+cookie_file = "cookies.txt"
+
+# Function to save cookies to a file
+def save_cookies(response_cookies):
+    try:
+        with open(cookie_file, "w") as f:
+            for cookie in response_cookies:
+                f.write(f"{cookie.domain}\t{cookie.path}\t{cookie.secure}\t{cookie.expires}\t{cookie.name}\t{cookie.value}\n")
+        print("Cookies saved successfully.")
+    except Exception as e:
+        print(f"Error saving cookies: {e}")
+
+# Function to load cookies from file
+def load_cookies():
+    cookies = {}
+    try:
+        with open(cookie_file, "r") as f:
+            for line in f:
+                if not line.startswith("#") and len(line.strip()) > 0:
+                    parts = line.strip().split("\t")
+                    if len(parts) >= 6:
+                        cookies[parts[-2]] = parts[-1]
+        print("Cookies loaded successfully.")
+    except FileNotFoundError:
+        print("Cookie file not found.")
+    return cookies
+
+# Attempt login to the modem
+def login():
+    print("Attempting to log in to the modem...")
+    login_url = f"http://{modem_ip}/check.jst"
+    headers = {
+        "Content-Type": "application/x-www-form-urlencoded",
+        "Origin": f"http://{modem_ip}",
+        "Referer": f"http://{modem_ip}/"
+    }
+    data = {
+        "username": username,
+        "password": password
+    }
+
+    try:
+        session = requests.Session()
+        response = session.post(login_url, headers=headers, data=data)
+
+        if "Incorrect password" in response.text:
+            print("Invalid credentials. Please check the username and password.")
+            return None
+
+        if "DUKSID" in response.cookies:
+            print("Login successful.")
+            save_cookies(response.cookies)
+            return session
+        else:
+            print("Login failed. Unknown error.")
+            return None
+    except requests.RequestException as e:
+        print(f"An error occurred during login: {e}")
+        return None
+
+# Fetch wireless settings
+def fetch_wireless_settings(session, url, frequency):
+    print(f"Fetching {frequency} GHz wireless settings...")
+
+    try:
+        response = session.get(url)
+        if response.status_code != 200:
+            print(f"Failed to fetch {frequency} GHz wireless settings. HTTP Status: {response.status_code}")
+            return
+
+        # Parse the response using BeautifulSoup
+        soup = BeautifulSoup(response.text, "html.parser")
+
+        # Extract SSID and Password
+        ssid_tag = soup.find("input", {"id": "network_name"})
+        password_tag = soup.find("input", {"id": "network_password"})
+
+        ssid = ssid_tag["value"] if ssid_tag else "SSID not found"
+        password = password_tag["value"] if password_tag else "Password not set or not found"
+
+        print(f"SSID: {ssid}")
+        print(f"Password: {password}")
+    except requests.RequestException as e:
+        print(f"An error occurred while fetching {frequency} GHz wireless settings: {e}")
+    except Exception as e:
+        print(f"Error parsing wireless settings: {e}")
+
+# Run a speed test
+def run_speedtest():
+    print("Running speed test...")
+    try:
+        result = subprocess.run(["speedtest", "--simple"], capture_output=True, text=True)
+        if result.returncode == 0:
+            print(result.stdout)
+        else:
+            print("Speed test failed. Please ensure the speedtest CLI is installed.")
+    except FileNotFoundError:
+        print("Speedtest CLI not found. Please install it to use this feature.")
+
+# Get public and private IP addresses
+def get_ip_addresses():
+    try:
+        public_ip = requests.get("https://api.ipify.org").text
+        print(f"Public IP: {public_ip}")
+    except requests.RequestException as e:
+        print(f"Could not fetch public IP: {e}")
+
+    try:
+        private_ip = subprocess.check_output(["hostname", "-I"]).decode().strip()
+        print(f"Private IP: {private_ip}")
+    except subprocess.SubprocessError as e:
+        print(f"Could not fetch private IP: {e}")
+
+# Main
+if __name__ == "__main__":
+    cookies = load_cookies()
+    if not cookies:
+        session = login()
+    else:
+        session = requests.Session()
+        session.cookies.update(cookies)
+
+    if session:
+        url_24g = f"http://{modem_ip}/wireless_network_configuration_edit.jst?id=1"
+        url_5g = f"http://{modem_ip}/wireless_network_configuration_edit.jst?id=2"
+
+        fetch_wireless_settings(session, url_24g, "2.4")
+        fetch_wireless_settings(session, url_5g, "5")
+
+        print("\nAdditional Information:")
+        get_ip_addresses()
+        run_speedtest()
+    else:
+        print("Not logged in. Please log in and ensure the session is active.")
