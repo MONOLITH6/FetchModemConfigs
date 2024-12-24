@@ -82,3 +82,31 @@ Gateway http://10.1.10.1/at_a_glance.jst
     Destination Subnet 	
     Subnet Mask 	
     Gateway IP
+
+
+
+    Eye witness URL:
+http://10.1.10.1/wireless_network_configuration.jst?id=1
+http://10.1.10.1/wireless_network_configuration.jst?id=2
+http://10.1.10.1/port_forwarding.jst
+http://10.1.10.1/local_ip_configuration.jst
+
+
+
+http://10.1.10.1/at_a_glance.jst
+http://10.1.10.1/initial_setup.jst
+http://10.1.10.1/local_ip_configuration.jst
+http://10.1.10.1/wireless_network_configuration_edit.jst?id=1
+http://10.1.10.1/wireless_network_configuration_edit.jst?id=2
+http://10.1.10.1/firewall_settings_ipv4.jst
+http://10.1.10.1/firewall_settings_ipv6.jst
+http://10.1.10.1/hardware.jst
+http://10.1.10.1/connected_devices_computers.jst
+http://10.1.10.1/port_forwarding.jst
+http://10.1.10.1/port_triggering.jst
+http://10.1.10.1/port_management.jst
+http://10.1.10.1/remote_management.jst
+http://10.1.10.1/dmz.jst
+http://10.1.10.1/nat.jst
+http://10.1.10.1/staticrouting.jst
+http://10.1.10.1/device_discovery.jst
