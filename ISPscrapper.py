@@ -4,9 +4,50 @@ import subprocess
 import os
 import socket
 from datetime import datetime
+import re
 
-# Modem IP and credentials
-modem_ip = "10.1.10.1"
+def is_valid_ip(ip):
+    """Validate an IPv4 address."""
+    pattern = re.compile(r"""
+        ^
+        (?:
+          # Dotted variants:
+          (?:
+            # Decimal 1-255 (no leading zeros)
+            (?:[1-9]\d{0,2})
+          )
+          \.
+        ){3}
+        (?:
+          (?:[1-9]\d{0,2})
+        )
+        $
+    """, re.VERBOSE)
+    if pattern.match(ip):
+        parts = ip.split(".")
+        return all(0 <= int(part) <= 255 for part in parts)
+    return False
+
+def get_gateway_ip():
+    """Prompt the user to confirm or enter a gateway IP."""
+    default_ip = "10.1.10.1"
+    while True:
+        response = input(f"Is the gateway IP the standard {default_ip}? (yes/no): ").strip().lower()
+        if response in ['yes', 'y']:
+            return default_ip
+        elif response in ['no', 'n']:
+            custom_ip = input("Please enter the gateway IP address: ").strip()
+            if is_valid_ip(custom_ip):
+                return custom_ip
+            else:
+                print("Invalid IP address format. Please try again.")
+        else:
+            print("Please respond with 'yes' or 'no'.")
+
+# Gateway IP determined by user input
+modem_ip = get_gateway_ip()
+
+# Modem credentials
 username = "cusadmin"
 password = "highspeed"
 
@@ -18,23 +59,23 @@ gowitness_path = "/usr/bin/gowitness"
 
 # Array of URLs to scan
 urls_to_scan = [
-    "http://10.1.10.1/at_a_glance.jst",
-    "http://10.1.10.1/initial_setup.jst",
-    "http://10.1.10.1/local_ip_configuration.jst",
-    "http://10.1.10.1/wireless_network_configuration_edit.jst?id=1",
-    "http://10.1.10.1/wireless_network_configuration_edit.jst?id=2",
-    "http://10.1.10.1/firewall_settings_ipv4.jst",
-    "http://10.1.10.1/firewall_settings_ipv6.jst",
-    "http://10.1.10.1/hardware.jst",
-    "http://10.1.10.1/connected_devices_computers.jst",
-    "http://10.1.10.1/port_forwarding.jst",
-    "http://10.1.10.1/port_triggering.jst",
-    "http://10.1.10.1/port_management.jst",
-    "http://10.1.10.1/remote_management.jst",
-    "http://10.1.10.1/dmz.jst",
-    "http://10.1.10.1/nat.jst",
-    "http://10.1.10.1/staticrouting.jst",
-    "http://10.1.10.1/device_discovery.jst"
+    f"http://{modem_ip}/at_a_glance.jst",
+    f"http://{modem_ip}/initial_setup.jst",
+    f"http://{modem_ip}/local_ip_configuration.jst",
+    f"http://{modem_ip}/wireless_network_configuration_edit.jst?id=1",
+    f"http://{modem_ip}/wireless_network_configuration_edit.jst?id=2",
+    f"http://{modem_ip}/firewall_settings_ipv4.jst",
+    f"http://{modem_ip}/firewall_settings_ipv6.jst",
+    f"http://{modem_ip}/hardware.jst",
+    f"http://{modem_ip}/connected_devices_computers.jst",
+    f"http://{modem_ip}/port_forwarding.jst",
+    f"http://{modem_ip}/port_triggering.jst",
+    f"http://{modem_ip}/port_management.jst",
+    f"http://{modem_ip}/remote_management.jst",
+    f"http://{modem_ip}/dmz.jst",
+    f"http://{modem_ip}/nat.jst",
+    f"http://{modem_ip}/staticrouting.jst",
+    f"http://{modem_ip}/device_discovery.jst"
 ]
 
 def save_cookies(response_cookies):
@@ -112,8 +153,8 @@ def fetch_wireless_settings(session, url, frequency):
         ssid = ssid_tag["value"] if ssid_tag else "SSID not found"
         password = password_tag["value"] if password_tag else "Password not set or not found"
 
-        print(f"SSID: {ssid}")
-        print(f"Password: {password}")
+        print(f"SSID ({frequency} GHz): {ssid}")
+        print(f"Password ({frequency} GHz): {password}")
     except requests.RequestException as e:
         print(f"An error occurred while fetching {frequency} GHz wireless settings: {e}")
     except Exception as e:
@@ -133,12 +174,13 @@ def show_public_private_ips():
 
     try:
         # Private IP
-        private_ip = socket.gethostbyname(socket.gethostname())
+        hostname = socket.gethostname()
+        private_ip = socket.gethostbyname(hostname)
     except Exception as e:
         private_ip = f"Unable to retrieve private IP ({e})"
 
-    print(f"Public IP:  {public_ip}")
-    print(f"Private IP: {private_ip}")
+    print(f"\nPublic IP:  {public_ip}")
+    print(f"Private IP: {private_ip}\n")
 
 def run_gowitness(urls, cookie):
     """Run Gowitness on the array of URLs using the provided DUKSID cookie."""
@@ -147,11 +189,17 @@ def run_gowitness(urls, cookie):
     # Ask user for the screenshot output location
     screenshot_path = input("Please enter the screenshot output folder path: ").strip()
 
-    # Make sure the directory exists (if it doesn't, create it)
-    if screenshot_path:
-        os.makedirs(screenshot_path, exist_ok=True)
-    else:
+    # Validate screenshot_path
+    if not screenshot_path:
         print("No screenshot path was provided. Exiting.")
+        return
+
+    # Create the directory if it doesn't exist
+    try:
+        os.makedirs(screenshot_path, exist_ok=True)
+        print(f"Screenshots will be saved to: {screenshot_path}")
+    except Exception as e:
+        print(f"Failed to create directory '{screenshot_path}': {e}")
         return
 
     # Create a temporary file to store the URLs
@@ -172,8 +220,9 @@ def run_gowitness(urls, cookie):
             "--screenshot-path", screenshot_path
         ]
 
+        # Execute the Gowitness command
         subprocess.run(command, check=True)
-        print("Gowitness scan completed successfully.")
+        print(f"Gowitness scan completed successfully. Screenshots saved to '{screenshot_path}'.")
     except subprocess.CalledProcessError as e:
         print(f"Error running Gowitness: {e}")
     except Exception as e:
@@ -181,10 +230,14 @@ def run_gowitness(urls, cookie):
     finally:
         # Remove the temporary file if you don't want to keep it
         if os.path.exists(temp_file):
-            os.remove(temp_file)
+            try:
+                os.remove(temp_file)
+                print(f"Temporary file '{temp_file}' removed.")
+            except Exception as e:
+                print(f"Failed to remove temporary file '{temp_file}': {e}")
 
-# Main entry point
-if __name__ == "__main__":
+def main():
+    """Main function to orchestrate the workflow."""
     # Load cookies if available
     cookies = load_cookies()
 
@@ -194,6 +247,7 @@ if __name__ == "__main__":
         # If cookies exist, just reuse them
         session = requests.Session()
         session.cookies.update(cookies)
+        print("Reusing existing session from cookies.")
 
     if session:
         # Display public/private IPs
@@ -210,8 +264,12 @@ if __name__ == "__main__":
         # Retrieve DUKSID cookie for Gowitness
         duksid_cookie = session.cookies.get("DUKSID", domain=modem_ip)
         if duksid_cookie:
+            # Run Gowitness with all URLs in urls_to_scan
             run_gowitness(urls_to_scan, duksid_cookie)
         else:
             print("DUKSID cookie not found. Unable to run Gowitness.")
     else:
         print("Not logged in. Please log in and ensure the session is active.")
+
+if __name__ == "__main__":
+    main()
